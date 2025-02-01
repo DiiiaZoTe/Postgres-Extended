@@ -1,0 +1,119 @@
+version: "3.8"
+
+# --------------------------------------------------------------
+# Postgres Database with the following services:
+# - db: the database
+# - db-pool: the database pool
+# --------------------------------------------------------------
+# Volumes & Networks:
+# - pg-extended-db-net: the network
+# - pg-extended-db-data: the data volume (for the database)
+# - pg-extended-db-backups: the backups volume (for the backups)
+# --------------------------------------------------------------
+# This postgres database includes:
+# - pgBouncer (for the database pool)
+# - pg_stat_statements (for the statistics)
+# - pg_cron (for the cron jobs) + plsh (to run .sh scripts from cron)
+# - timescaledb (for the time series data)
+# - pgBackrest (for the backups)
+# - pg_repack (for reorganizing tables)
+# --------------------------------------------------------------
+# Important Notes:
+# - To reuse this, make sure to change the following:
+#   - replace all occurrences of pg-extended (by your project name)
+# --------------------------------------------------------------
+
+# Name of the docker compose stack
+name: pg-extended
+
+services:
+  # Database
+  db:
+    container_name: pg-extended-db
+    build:
+      context: .
+      args:
+        #
+        POSTGRES_DB: ${POSTGRES_DB:-postgres}
+        POSTGRES_USER: ${POSTGRES_USER:-postgres}
+        DISCORD_WEBHOOK: ${DISCORD_WEBHOOK}
+        CRON_BACKUP_ENABLED: ${CRON_BACKUP_ENABLED:-true}
+        BACKUP_CIPHER_PASS: ${BACKUP_CIPHER_PASS}
+        # Uncomment to enable S3 backups
+        # BACKUP_S3_ENDPOINT: ${BACKUP_S3_ENDPOINT}
+        # BACKUP_S3_BUCKET: ${BACKUP_S3_BUCKET}
+        # BACKUP_S3_REGION: ${BACKUP_S3_REGION}
+        # BACKUP_S3_KEY: ${BACKUP_S3_KEY}
+        # BACKUP_S3_KEY_SECRET: ${BACKUP_S3_KEY_SECRET}
+        # BACKUP_S3_FOLDER: ${BACKUP_S3_FOLDER}
+    environment:
+      # Required environment variables
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres_password}
+      BACKUP_CIPHER_PASS: ${BACKUP_CIPHER_PASS}
+      # Enable cron backups (default: true)
+      CRON_BACKUP_ENABLED: ${CRON_BACKUP_ENABLED}
+      # Discord webhook (optional)
+      DISCORD_WEBHOOK: ${DISCORD_WEBHOOK}
+      # S3 backup configuration (optional) - Uncomment to enable S3 backups
+      # BACKUP_S3_ENDPOINT: ${BACKUP_S3_ENDPOINT}
+      # BACKUP_S3_BUCKET: ${BACKUP_S3_BUCKET}
+      # BACKUP_S3_REGION: ${BACKUP_S3_REGION}
+      # BACKUP_S3_KEY: ${BACKUP_S3_KEY}
+      # BACKUP_S3_KEY_SECRET: ${BACKUP_S3_KEY_SECRET}
+      # BACKUP_S3_FOLDER: ${BACKUP_S3_FOLDER}
+    volumes:
+      - pg-extended-db-data:/var/lib/postgresql/data
+      - pg-extended-db-backups:/var/lib/pgbackrest
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB} || exit 1",
+        ]
+      interval: 24h
+      timeout: 5s
+      retries: 3
+      start_period: 0s
+    networks:
+      - pg-extended-db-net
+
+  # Database Pool
+  db-pool:
+    image: edoburu/pgbouncer:latest
+    container_name: pg-extended-db-pool
+    depends_on:
+      - db
+    environment:
+      DB_HOST: db
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_NAME: ${POSTGRES_DB}
+      DEFAULT_POOL_SIZE: 100
+      AUTH_TYPE: scram-sha-256
+      ADMIN_USERS: ${POSTGRES_USER}
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U $${DB_USER} -d $${DB_NAME} -h localhost -p 5432 || exit 1",
+        ]
+      interval: 1h
+      timeout: 5s
+      retries: 3
+      start_period: 0s
+    networks:
+      - pg-extended-db-net
+
+# Network
+networks:
+  pg-extended-db-net:
+    driver: bridge
+
+# Volumes
+volumes:
+  pg-extended-db-data:
+  pg-extended-db-backups:
