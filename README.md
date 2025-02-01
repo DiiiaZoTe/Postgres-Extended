@@ -1,10 +1,9 @@
-# PostgreSQL Database Service
+# PostgreSQL Database Service (pg-extended)
 
 A production-ready PostgreSQL database service with built-in connection pooling, monitoring, backup solutions, and various extensions.
 
 > Note: default project name is `pg-extended`, you can change it by editing the `docker-compose.yml` file.
->
-> In this readme, we refer to the project name as `project-name` for the sake of simplicity.
+> If you wish to change the project name, make sure to update all the occurrences of the project name (`pg-extended`) in the `docker-compose.yml` file.
 
 ## Features
 
@@ -12,7 +11,7 @@ A production-ready PostgreSQL database service with built-in connection pooling,
 
 - **PostgreSQL 17.2**: Base image as starting point
 - **PgBouncer**: Connection pooling to manage database connections efficiently
-- **Supervisor**: Process management for enhanced control and recovery operations
+- **Supervisord**: Process management for enhanced control and recovery operations
 
 ### Extensions
 - **TimescaleDB**: For time-series data management
@@ -24,13 +23,14 @@ A production-ready PostgreSQL database service with built-in connection pooling,
 ### Other tools
 - **pgBackRest**: For robust backup and recovery operations
 - **PgBadger**: For log analysis
+- **Discord Webhook**: For logging backups success/failure to a discord channel
 
 ### Networking & Storage
 
-- **Network**: Isolated bridge network (`project-name-db-net`)
+- **Network**: Isolated bridge network (`pg-extended-db-net`)
 - **Volumes**:
-  - `project-name-db-data`: For persistent database storage
-  - `project-name-db-backups`: For backup storage
+  - `pg-extended-db-data`: For persistent database storage
+  - `pg-extended-db-backups`: For backup storage
 
 
 ## Why Supervisor?
@@ -85,13 +85,16 @@ docker compose -f docker-compose-pgadmin.yml up -d
 
 ### Logs
 
-Logs are stored in the `pg_log` directory and are rotated daily with a weekly retention policy by default.
+Logs are stored in the `pg_log` directory and are rotated daily with a weekly retention policy by default. Please refer to `custom.conf` to change this behavior.
+
+To view the log files, run the following command:
 
 ```bash
 ls -lh ${PGDATA}/pg_log
 ```
 
 ### PgBadger
+
 
 PgBadger is installed and configured to analyze the logs.
 View the doc to learn more: https://pgbadger.darold.net/
@@ -114,13 +117,14 @@ The system includes automated backup scheduling:
 > - `BACKUP_S3_KEY_SECRET`
 > - `BACKUP_S3_FOLDER`
 > 
-> While testing the S3 backups, these were slow...
+> While testing the S3 backups, these can be slow depending on a lot of factors...
 
 ### Running Manual Backups
 
 For a full backup:
 ```bash
 ./backup.sh full
+
 ```
 or from the database:
 ```sql
@@ -146,7 +150,7 @@ supervisorctl stop postgres;supervisorctl update
 
 2. Create a safety backup of current data:
 ```bash
-cp -r ${PGDATA} ${PGVOLUME}/project-name-pgdata-safety
+cp -r ${PGDATA} ${PGVOLUME}/pg-extended-pgdata-safety
 ```
 
 3. Switch to postgres user:
@@ -174,6 +178,7 @@ supervisorctl start postgres; supervisorctl update
 
 - In `docker-compose.yml` replace the default project name with your project name
 - Ensure all required environment variables are set
+- The environment variables you set during the first build for the postgres database, user and password will be used to connect to the database. If you wish to create a new user and database, you can do so using SQL. Just google it, there are plenty of resources online.
 - Review and adjust backup schedules as needed
 - Consider security implications when exposing ports
 - Monitor backup logs for successful execution
