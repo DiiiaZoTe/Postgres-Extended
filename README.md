@@ -5,11 +5,20 @@ A production-ready PostgreSQL database service with built-in connection pooling,
 > Note: default project name is `pg-extended`, you can change it by editing the `docker-compose.yml` file.
 > If you wish to change the project name, make sure to update all the occurrences of the project name (`pg-extended`) in the `docker-compose.yml` file.
 
+## Usage
+
+This is how I usually run this project:
+
+```bash
+docker-compose --env-file .env -f docker-compose.yml build --no-cache --progress=plain; docker-compose --env-file .env -f docker-compose.yml up -d  
+```
+
 ## Features
 
 ### Core Components
 
 - **PostgreSQL 17.2**: Base image as starting point
+
 - **PgBouncer**: Connection pooling to manage database connections efficiently
 - **Supervisord**: Process management for enhanced control and recovery operations
 
@@ -31,7 +40,6 @@ A production-ready PostgreSQL database service with built-in connection pooling,
 - **Volumes**:
   - `pg-extended-db-data`: For persistent database storage
   - `pg-extended-db-backups`: For backup storage
-
 
 ## Why Supervisor?
 
@@ -183,3 +191,4 @@ supervisorctl start postgres; supervisorctl update
 - Consider security implications when exposing ports
 - Monitor backup logs for successful execution
 - Regularly test backup recovery process
+- Adjust the network to your needs... you can make it an external network, to be able to connect to the database from outside the container (e.g. an api running on the same machine)
