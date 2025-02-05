@@ -85,6 +85,7 @@ RUN echo "Verifying passed arguments..." && \
 ####################################################
 
 RUN apt-get update && apt-get install -y \
+    vim \
     git \
     gcc \
     make \
