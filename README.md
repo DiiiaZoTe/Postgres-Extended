@@ -111,6 +111,10 @@ View the doc to learn more: https://pgbadger.darold.net/
 
 ### Automated Backups
 
+> Note: The backup system is enabled by default. If you wish to disable it, set the `ENABLE_BACKUP` environment variable to `off` in the `docker-compose.yml` file.
+> If you do this at initial setup, you will have to enable it manually by adding the archive config and the pgbackrest stanza, etc...
+> View `init-db/db-001-init-conf-extension.sh` to see how it's done.
+
 The system includes automated backup scheduling:
 - Full backups every Sunday at 00:00
 - Incremental backups Monday through Saturday at 00:00
