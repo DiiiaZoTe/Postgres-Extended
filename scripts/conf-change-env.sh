@@ -43,5 +43,6 @@ fi
 replace_template_variables "__DB_NAME__" "${POSTGRES_DB}" "${POSTGRES_CUSTOM_CONF}"
 replace_template_variables "__BACKUP_STANZA__" "${PGBACKREST_STANZA}" "${POSTGRES_CUSTOM_CONF}"
 replace_template_variables "__PG_DATA__" "${PGDATA}" "${POSTGRES_CUSTOM_CONF}"
+replace_template_variables "__ENABLE_BACKUP__" "${ENABLE_BACKUP}" "${POSTGRES_CUSTOM_CONF}"
 
 log "Template variables replaced in ${POSTGRES_CUSTOM_CONF}."

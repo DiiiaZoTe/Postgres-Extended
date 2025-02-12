@@ -37,8 +37,9 @@ services:
         POSTGRES_DB: ${POSTGRES_DB:-postgres}
         POSTGRES_USER: ${POSTGRES_USER:-postgres}
         DISCORD_WEBHOOK: ${DISCORD_WEBHOOK}
-        CRON_BACKUP_ENABLED: ${CRON_BACKUP_ENABLED:-true}
         BACKUP_CIPHER_PASS: ${BACKUP_CIPHER_PASS}
+        CRON_BACKUP_ENABLED: ${CRON_BACKUP_ENABLED:-true}
+        ENABLE_BACKUP: ${ENABLE_BACKUP:-on}
         # Uncomment to enable S3 backups
         # BACKUP_S3_ENDPOINT: ${BACKUP_S3_ENDPOINT}
         # BACKUP_S3_BUCKET: ${BACKUP_S3_BUCKET}
@@ -53,7 +54,9 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres_password}
       BACKUP_CIPHER_PASS: ${BACKUP_CIPHER_PASS}
       # Enable cron backups (default: true)
-      CRON_BACKUP_ENABLED: ${CRON_BACKUP_ENABLED}
+      CRON_BACKUP_ENABLED: ${CRON_BACKUP_ENABLED:-true}
+      # Enable backups (default: on)
+      ENABLE_BACKUP: ${ENABLE_BACKUP:-on}
       # Discord webhook (optional)
       DISCORD_WEBHOOK: ${DISCORD_WEBHOOK}
       # S3 backup configuration (optional) - Uncomment to enable S3 backups

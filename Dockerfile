@@ -15,6 +15,10 @@ RUN ln -sf /bin/bash /bin/sh
 ARG DISCORD_WEBHOOK
 ENV DISCORD_WEBHOOK=${DISCORD_WEBHOOK:-""}
 
+# Enable backup
+ARG ENABLE_BACKUP
+ENV ENABLE_BACKUP=${ENABLE_BACKUP:-"on"}
+
 # Enable cron backup
 ARG CRON_BACKUP_ENABLED
 ENV CRON_BACKUP_ENABLED=${CRON_BACKUP_ENABLED:-"true"}
@@ -175,17 +179,6 @@ RUN mkdir -p ${PGBACKREST_REPO1_PATH} \
     && chown -R postgres:postgres ${PGBACKREST_SPOOL_PATH}
 
 ####################################################
-# Add custom configuration to postgresql.conf
-####################################################
-
-# Copy custom configuration
-COPY conf/custom.conf ${POSTGRES_CUSTOM_CONF}
-RUN chmod 755 ${POSTGRES_CUSTOM_CONF}
-
-# Set permissions for PostgreSQL extensions directory
-RUN chmod -R 755 ${LOCAL_SHARE}/extension
-
-####################################################
 # Add all init-db .sh and .sql scripts
 ####################################################
 
@@ -205,11 +198,16 @@ RUN cp -a /tmp/scripts/. ${SCRIPTS_DIR}/ && \
     chmod -R +x ${SCRIPTS_DIR}/ && \
     find ${SCRIPTS_DIR} -type f -name "*.sh" -exec dos2unix {} +
 
+
 ####################################################
-# Run config change environment script
+# Add custom configuration to postgresql.conf
 ####################################################
 
-RUN ${SCRIPTS_DIR}/conf-change-env.sh
+# Copy custom configuration and run scripts
+COPY conf/custom.conf ${POSTGRES_CUSTOM_CONF}
+RUN chmod 755 ${POSTGRES_CUSTOM_CONF} \
+    && ${SCRIPTS_DIR}/conf-change-env.sh \
+    && chmod -R 755 ${LOCAL_SHARE}/extension
 
 ####################################################
 # Override the default entrypoint to include custom setup
